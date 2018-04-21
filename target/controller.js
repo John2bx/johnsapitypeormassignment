@@ -8,21 +8,39 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const routing_controllers_1 = require("routing-controllers");
+const entity_1 = require("./games/entity");
 let MainController = class MainController {
-    main() {
-        return {
-            hello: 'World'
-        };
+    async allgames() {
+        const games = await entity_1.default.find();
+        return { games };
+    }
+    createGame(game) {
+        const colors = ['red', 'blue', 'green', 'yellow', 'magenta'];
+        game.color = colors[Math.floor(Math.random() * colors.length)];
+        const initialboard = [["o", "o", "o"], ["o", "o", "o"], ["o", "o", "o"]];
+        game.board = initialboard;
+        return game.save();
     }
 };
 __decorate([
-    routing_controllers_1.Get("/hello"),
+    routing_controllers_1.Get('/games'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], MainController.prototype, "allgames", null);
+__decorate([
+    routing_controllers_1.Post('/games'),
+    routing_controllers_1.HttpCode(201),
+    __param(0, routing_controllers_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [entity_1.default]),
     __metadata("design:returntype", void 0)
-], MainController.prototype, "main", null);
+], MainController.prototype, "createGame", null);
 MainController = __decorate([
     routing_controllers_1.Controller()
 ], MainController);
