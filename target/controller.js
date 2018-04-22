@@ -14,6 +14,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const routing_controllers_1 = require("routing-controllers");
 const entity_1 = require("./games/entity");
+const typeorm_1 = require("typeorm");
+const class_validator_1 = require("class-validator");
+const moves = (board1, board2) => board1
+    .map((row, y) => row.filter((cell, x) => board2[y][x] !== cell))
+    .reduce((a, b) => a.concat(b))
+    .length;
 let MainController = class MainController {
     async allgames() {
         const games = await entity_1.default.find();
@@ -25,6 +31,19 @@ let MainController = class MainController {
         const initialboard = [["o", "o", "o"], ["o", "o", "o"], ["o", "o", "o"]];
         game.board = initialboard;
         return game.save();
+    }
+    async updateGame(id, update) {
+        const game = await entity_1.default.findOne(id);
+        if (!game) {
+            throw new routing_controllers_1.NotFoundError('Cannot find game');
+        }
+        else if (update.board && moves(update.board, game.board) > 1) {
+            return routing_controllers_1.BadRequestError;
+        }
+        else {
+            class_validator_1.validate(typeorm_1.AfterUpdate);
+            return entity_1.default.merge(game, update).save();
+        }
     }
 };
 __decorate([
@@ -41,6 +60,14 @@ __decorate([
     __metadata("design:paramtypes", [entity_1.default]),
     __metadata("design:returntype", void 0)
 ], MainController.prototype, "createGame", null);
+__decorate([
+    routing_controllers_1.Put('/games/:id'),
+    __param(0, routing_controllers_1.Param('id')),
+    __param(1, routing_controllers_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], MainController.prototype, "updateGame", null);
 MainController = __decorate([
     routing_controllers_1.Controller()
 ], MainController);
